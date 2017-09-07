@@ -16,11 +16,11 @@
         "illuminate/support": "~5.0",
         "torann/geoip": "^1.0"
     },
-	"autoload": {
+    "autoload": {
         "psr-0": {
             "Viviniko\\Agent": "src"
         }
     },
     "minimum-stability": "dev",
-	"prefer-stable": true
+    "prefer-stable": true
 }

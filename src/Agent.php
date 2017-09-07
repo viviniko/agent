@@ -168,8 +168,8 @@ class Agent extends Mobile_Detect {
         return false;
     }
 
-    public function location() {
-        return geoip()->getLocation();
+    public function location($ip = null) {
+        return geoip()->getLocation($ip ?? Request::ip());
     }
 
     /**
