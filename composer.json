@@ -21,6 +21,13 @@
             "Viviniko\\Agent": "src"
         }
     },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Viviniko\\Agent\\AgentServiceProvider"
+            ]
+        }
+    },
     "minimum-stability": "dev",
     "prefer-stable": true
 }
