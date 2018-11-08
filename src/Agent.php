@@ -3,9 +3,8 @@
 namespace Viviniko\Agent;
 
 use BadMethodCallException;
-use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Request;
-use Illuminate\Support\Str;
+use Jaybizzle\CrawlerDetect\CrawlerDetect;
 use Mobile_Detect;
 
 class Agent extends Mobile_Detect {
@@ -76,6 +75,22 @@ class Agent extends Mobile_Detect {
         'Edge' => 'Edge/[VER]',
         'Vivaldi' => 'Vivaldi/[VER]',
     ];
+
+    /**
+     * @var CrawlerDetect
+     */
+    protected static $crawlerDetect;
+
+    /**
+     * @return CrawlerDetect
+     */
+    public function getCrawlerDetect()
+    {
+        if (self::$crawlerDetect === null) {
+            self::$crawlerDetect = new CrawlerDetect();
+        }
+        return self::$crawlerDetect;
+    }
 
     /**
      * Get all detection rules. These rules include the additional
@@ -172,40 +187,6 @@ class Agent extends Mobile_Detect {
         return geoip()->getLocation($ip ?? Request::ip());
     }
 
-    /**
-     * Get client identifier
-     *
-     * @return string
-     */
-    public function clientId() {
-        static $clientId;
-
-        if (!$clientId) {
-            if (Cookie::has('ci')) {
-                $clientId = Cookie::get('ci');
-            } else {
-                $clientId = strtolower( md5(Request::ip() . microtime(true) . Str::random(128)));
-                Cookie::queue(Cookie::forever('ci', $clientId));
-            }
-        }
-
-        return $clientId;
-    }
-
-    /**
-     * Get entry referer.
-     *
-     * @return mixed|null|string
-     */
-    public function entryReferer() {
-        if (!($referer = session('referer'))) {
-            $referer = $this->referer();
-            session(['referer' => $referer]);
-        }
-
-        return $referer;
-    }
-
     public function referer($httpHeaders = null) {
         if ($httpHeaders) {
             $this->setHttpHeaders($httpHeaders);
@@ -286,6 +267,28 @@ class Agent extends Mobile_Detect {
      */
     public function isPhone($userAgent = null, $httpHeaders = null) {
         return $this->isMobile($userAgent, $httpHeaders) && ! $this->isTablet($userAgent, $httpHeaders);
+    }
+
+    /**
+     * Get the robot name.
+     *
+     * @param  string $userAgent
+     * @return string|bool
+     */
+    public function robot($userAgent = null) {
+        if ($this->getCrawlerDetect()->isCrawler($userAgent ?: $this->userAgent)) {
+            return ucfirst($this->getCrawlerDetect()->getMatches());
+        }
+        return false;
+    }
+    /**
+     * Check if device is a robot.
+     *
+     * @param  string $userAgent
+     * @return bool
+     */
+    public function isRobot($userAgent = null) {
+        return $this->getCrawlerDetect()->isCrawler($userAgent ?: $this->userAgent);
     }
 
     /**
